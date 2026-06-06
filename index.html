@@ -722,6 +722,50 @@
             const resultSavedCostSpan = document.getElementById('result-saved-cost');
             const resultNetBenefitSpan = document.getElementById('result-net-benefit');
             const resultFteSpan = document.getElementById('result-fte');
+            let cp950EncodeMap = null;
+
+            function getCp950EncodeMap() {
+                if (cp950EncodeMap) return cp950EncodeMap;
+
+                const decoder = new TextDecoder('big5');
+                cp950EncodeMap = new Map();
+
+                for (let lead = 0x81; lead <= 0xfe; lead++) {
+                    for (let trail = 0x40; trail <= 0xfe; trail++) {
+                        if (trail === 0x7f) continue;
+
+                        const char = decoder.decode(new Uint8Array([lead, trail]));
+                        if (char !== '\uFFFD' && Array.from(char).length === 1 && !cp950EncodeMap.has(char)) {
+                            cp950EncodeMap.set(char, [lead, trail]);
+                        }
+                    }
+                }
+
+                return cp950EncodeMap;
+            }
+
+            function encodeCp950(text) {
+                const bytes = [];
+                const encodeMap = getCp950EncodeMap();
+
+                for (const char of text) {
+                    const codePoint = char.codePointAt(0);
+
+                    if (codePoint <= 0x7f) {
+                        bytes.push(codePoint);
+                        continue;
+                    }
+
+                    const encoded = encodeMap.get(char);
+                    if (encoded) {
+                        bytes.push(encoded[0], encoded[1]);
+                    } else {
+                        bytes.push(0x3f);
+                    }
+                }
+
+                return new Uint8Array(bytes);
+            }
 
             function calculateSavings() {
                 const minutes = parseFloat(minutesInput.value) || 0;
@@ -829,7 +873,8 @@ RPA 總擁有成本：$${rpaCost} /年
 > 建議行動：立即啟動自動化程序
 =========================================`;
 
-                    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+                    const cp950Content = encodeCp950(reportContent.replace(/\n/g, '\r\n'));
+                    const blob = new Blob([cp950Content], { type: 'text/plain;charset=big5' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
