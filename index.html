@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>痛點計算機</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f3f4f6;
+            --dot: #cbd5e1;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --text: #111827;
+            --muted: #667085;
+            --subtle: #d1d5db;
+            --line: #d1d5db;
+            --input: #f9fafb;
+            --accent: #d97706;
+            --accent-strong: #f59e0b;
+            --accent-text: #92400e;
+            --danger: #ef4444;
+            --shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+        }
+
+        .dark {
+            color-scheme: dark;
+            --bg: #1a1a1a;
+            --dot: #333333;
+            --panel: #1e1e1e;
+            --panel-soft: #111111;
+            --text: #f5f5f5;
+            --muted: #a3a3a3;
+            --subtle: #333333;
+            --line: #333333;
+            --input: #111111;
+            --accent: #ffb300;
+            --accent-strong: #ffb300;
+            --accent-text: #ffcf66;
+            --danger: #f87171;
+            --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            background-color: var(--bg);
+            background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text);
+            font-family: "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--panel-soft);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+        }
+
+        .shell {
+            width: min(100%, 768px);
+            position: relative;
+            overflow: hidden;
+            padding: 24px;
+            background: var(--panel);
+            border: 4px solid var(--line);
+            box-shadow: var(--shadow);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .corner {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-color: var(--accent);
+            pointer-events: none;
+        }
+
+        .corner-top-left {
+            top: 0;
+            left: 0;
+            border-top: 4px solid var(--accent);
+            border-left: 4px solid var(--accent);
+        }
+
+        .corner-top-right {
+            top: 0;
+            right: 0;
+            border-top: 4px solid var(--accent);
+            border-right: 4px solid var(--accent);
+        }
+
+        .corner-bottom-left {
+            bottom: 0;
+            left: 0;
+            border-bottom: 4px solid var(--accent);
+            border-left: 4px solid var(--accent);
+        }
+
+        .corner-bottom-right {
+            right: 0;
+            bottom: 0;
+            border-right: 4px solid var(--accent);
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .theme-toggle svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+            border-bottom: 2px solid var(--line);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: var(--accent-text);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            letter-spacing: 0;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+
+        h1,
+        h2,
+        p {
+            margin: 0;
+        }
+
+        h1 {
+            max-width: calc(100% - 48px);
+            color: var(--text);
+            font-size: 40px;
+            line-height: 1.1;
+            font-weight: 800;
+        }
+
+        .system-id {
+            display: none;
+            color: var(--subtle);
+            font-family: Impact, "Arial Narrow", sans-serif;
+            font-size: 48px;
+            line-height: 1;
+        }
+
+        .phase {
+            margin-top: 40px;
+        }
+
+        .phase:first-of-type {
+            margin-top: 0;
+        }
+
+        .phase-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            color: var(--accent-text);
+            font-size: 20px;
+            line-height: 1.3;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .phase-label {
+            flex: 0 0 auto;
+            padding: 4px 8px;
+            background: var(--accent);
+            color: #111111;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+        }
+
+        .field {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: var(--input);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        input {
+            min-height: 58px;
+            padding: 12px 16px;
+        }
+
+        textarea {
+            min-height: 64px;
+            padding: 12px 16px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--accent);
+        }
+
+        input[type="number"] {
+            font-family: Impact, "Arial Narrow", sans-serif;
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .input-grid,
+        .roi-grid,
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .result-box,
+        .roi-box,
+        .banner {
+            position: relative;
+            margin-top: 8px;
+            padding: 24px;
+            background: var(--panel-soft);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .result-box {
+            border: 2px solid var(--accent);
+        }
+
+        .roi-box {
+            border: 2px solid var(--line);
+        }
+
+        .box-label {
+            position: absolute;
+            top: -11px;
+            left: 16px;
+            padding: 0 8px;
+            background: var(--panel);
+            color: var(--accent-text);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+        }
+
+        .roi-box .box-label {
+            color: var(--muted);
+        }
+
+        .time-result {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .formula {
+            color: var(--muted);
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        .big-number {
+            color: var(--accent-text);
+            font-family: Impact, "Arial Narrow", sans-serif;
+            font-size: 52px;
+            line-height: 1;
+            font-weight: 800;
+            text-align: right;
+        }
+
+        .unit {
+            color: var(--muted);
+            font-size: 24px;
+        }
+
+        .hours {
+            margin-top: 4px;
+            color: var(--muted);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 18px;
+            text-align: right;
+        }
+
+        .log-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .log-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .log-index {
+            flex: 0 0 auto;
+            width: 40px;
+            height: 40px;
+            margin-top: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            background: var(--subtle);
+            color: var(--accent-text);
+            font-family: Impact, "Arial Narrow", sans-serif;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .metric-grid {
+            gap: 0;
+        }
+
+        .metric {
+            padding: 16px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .metric:first-child {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .metric-label {
+            margin-bottom: 4px;
+            color: var(--muted);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+        }
+
+        .metric-value {
+            color: var(--text);
+            font-family: Impact, "Arial Narrow", sans-serif;
+            font-size: 32px;
+            line-height: 1.1;
+            font-weight: 800;
+        }
+
+        .metric-value.accent {
+            color: var(--accent-text);
+            font-size: 40px;
+        }
+
+        .metric-note {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .banner {
+            margin-top: 40px;
+            border-left: 8px solid var(--accent);
+        }
+
+        .banner-inner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .banner-icon {
+            flex: 0 0 auto;
+            width: 32px;
+            height: 32px;
+            color: var(--accent-text);
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+
+        .banner-title {
+            color: var(--text);
+            font-size: 24px;
+            line-height: 1.25;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .banner-copy {
+            margin-top: 4px;
+            color: var(--muted);
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+        }
+
+        .export-btn {
+            width: 100%;
+            min-height: 64px;
+            margin-top: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: 2px solid var(--accent);
+            background: var(--panel-soft);
+            color: var(--accent-text);
+            cursor: pointer;
+            font-family: Impact, "Arial Narrow", sans-serif;
+            font-size: 30px;
+            font-weight: 800;
+            text-transform: uppercase;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .export-btn:hover {
+            background: var(--accent);
+            color: #111111;
+            transform: translateY(-1px);
+        }
+
+        .export-btn svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @media (min-width: 640px) {
+            body {
+                padding: 32px;
+            }
+
+            .shell {
+                padding: 40px;
+            }
+
+            h1 {
+                font-size: 48px;
+            }
+
+            .system-id {
+                display: block;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .input-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .roi-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .metric-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .metric {
+                padding: 0 24px;
+                border-top: 0;
+                border-left: 1px solid var(--line);
+            }
+
+            .metric:first-child {
+                padding-left: 0;
+                border-left: 0;
+            }
+
+            .time-result {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .shell {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 34px;
+            }
+
+            .big-number {
+                font-size: 44px;
+            }
+
+            .export-btn {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <button id="theme-toggle" class="theme-toggle" title="切換深淺色模式" aria-label="切換深淺色模式">
+            <svg id="theme-toggle-light-icon" class="hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="theme-toggle-dark-icon" class="hidden" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+
+        <span class="corner corner-top-left"></span>
+        <span class="corner corner-top-right"></span>
+        <span class="corner corner-bottom-left"></span>
+        <span class="corner corner-bottom-right"></span>
+
+        <header class="header">
+            <div>
+                <div class="status">
+                    <span class="status-dot"></span>
+                    SYSTEM STATUS: OFFLINE READY
+                </div>
+                <h1>痛點計算機</h1>
+            </div>
+            <div class="system-id">SYS.01</div>
+        </header>
+
+        <section class="phase" aria-labelledby="phase-1-title">
+            <h2 id="phase-1-title" class="phase-title">
+                <span class="phase-label">PHASE 1</span>
+                核心參數估算
+            </h2>
+
+            <div class="field">
+                <label for="process-name">&gt; 流程名稱 (Process Name)</label>
+                <input type="text" id="process-name" placeholder="例如：每日報表整理">
+            </div>
+
+            <div class="input-grid">
+                <div class="field">
+                    <label for="minutes">&gt; 每天耗時 (分鐘)</label>
+                    <input type="number" id="minutes" class="calc-input" value="30" min="0">
+                </div>
+                <div class="field">
+                    <label for="people">&gt; 作業人數 (人)</label>
+                    <input type="number" id="people" class="calc-input" value="1" min="1">
+                </div>
+                <div class="field">
+                    <label for="days">&gt; 年執行日 (天)</label>
+                    <input type="number" id="days" class="calc-input" value="250" min="1">
+                </div>
+            </div>
+
+            <div class="result-box">
+                <div class="box-label">&gt; 預估回收時間</div>
+                <div class="time-result">
+                    <div class="formula">(分鐘) x (人數) x (天數) =</div>
+                    <div>
+                        <div class="big-number"><span id="result-minutes">7,500</span> <span class="unit">MINS</span></div>
+                        <div id="result-hours" class="hours">[ 125.00 HR ]</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="phase" aria-labelledby="phase-2-title">
+            <h2 id="phase-2-title" class="phase-title">
+                <span class="phase-label">PHASE 2</span>
+                重點改善項目日誌
+            </h2>
+            <div class="log-list">
+                <div class="log-row">
+                    <div class="log-index">01</div>
+                    <textarea id="improve-item-1" rows="2" placeholder="輸入第一項最想自動化的環節..."></textarea>
+                </div>
+                <div class="log-row">
+                    <div class="log-index">02</div>
+                    <textarea id="improve-item-2" rows="2" placeholder="輸入第二項最想自動化的環節..."></textarea>
+                </div>
+                <div class="log-row">
+                    <div class="log-index">03</div>
+                    <textarea id="improve-item-3" rows="2" placeholder="輸入第三項最想自動化的環節..."></textarea>
+                </div>
+                <div class="log-row">
+                    <div class="log-index">04</div>
+                    <textarea id="improve-item-4" rows="2" placeholder="輸入第四項最想自動化的環節..."></textarea>
+                </div>
+                <div class="log-row">
+                    <div class="log-index">05</div>
+                    <textarea id="improve-item-5" rows="2" placeholder="輸入第五項最想自動化的環節..."></textarea>
+                </div>
+            </div>
+        </section>
+
+        <section class="phase" aria-labelledby="phase-3-title">
+            <h2 id="phase-3-title" class="phase-title">
+                <span class="phase-label">PHASE 3</span>
+                ROI 投資報酬率量化
+            </h2>
+
+            <div class="roi-grid">
+                <div class="field">
+                    <label for="hourly-wage">&gt; 人員單位成本 (時薪 NT$)</label>
+                    <input type="number" id="hourly-wage" class="calc-input" value="250" min="0" placeholder="例: 250">
+                </div>
+                <div class="field">
+                    <label for="rpa-cost">&gt; RPA 總擁有成本 (年/NT$)</label>
+                    <input type="number" id="rpa-cost" class="calc-input" value="50000" min="0" placeholder="例: 50000">
+                </div>
+            </div>
+
+            <div class="roi-box">
+                <div class="box-label">&gt; 效益分析結果</div>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <div class="metric-label">節省人力成本 (Gross)</div>
+                        <div class="metric-value">$ <span id="result-saved-cost">0</span></div>
+                        <div class="metric-note">*(總計時數) x (人員單位成本)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">預估淨效益 (Net Benefit)</div>
+                        <div class="metric-value accent">$ <span id="result-net-benefit">0</span></div>
+                        <div class="metric-note">*(節省人力成本) - (RPA總擁有成本)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">釋放全職人力 (FTE)</div>
+                        <div class="metric-value"><span id="result-fte">0.00</span> 人</div>
+                        <div class="metric-note">*以年工時 2000 小時為基準</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="banner" aria-label="系統分析結果">
+            <div class="banner-inner">
+                <svg class="banner-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <div>
+                    <h2 class="banner-title">系統分析：找出您的百萬美金流程</h2>
+                    <p class="banner-copy">&gt; 執行自動化程序，即可回收上述時間資產。</p>
+                </div>
+            </div>
+        </section>
+
+        <button id="export-btn" class="export-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            匯出分析報告 (EXPORT TXT)
+        </button>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const minutesInput = document.getElementById('minutes');
+            const peopleInput = document.getElementById('people');
+            const daysInput = document.getElementById('days');
+            const resultMinutesSpan = document.getElementById('result-minutes');
+            const resultHoursDiv = document.getElementById('result-hours');
+            const hourlyWageInput = document.getElementById('hourly-wage');
+            const rpaCostInput = document.getElementById('rpa-cost');
+            const resultSavedCostSpan = document.getElementById('result-saved-cost');
+            const resultNetBenefitSpan = document.getElementById('result-net-benefit');
+            const resultFteSpan = document.getElementById('result-fte');
+
+            function calculateSavings() {
+                const minutes = parseFloat(minutesInput.value) || 0;
+                const people = parseFloat(peopleInput.value) || 0;
+                const days = parseFloat(daysInput.value) || 0;
+                const totalMinutes = minutes * people * days;
+                const totalHours = totalMinutes / 60;
+                const hourlyWage = parseFloat(hourlyWageInput?.value) || 0;
+                const rpaCost = parseFloat(rpaCostInput?.value) || 0;
+                const savedCost = totalHours * hourlyWage;
+                const netBenefit = savedCost - rpaCost;
+                const fte = totalHours / 2000;
+
+                if (resultMinutesSpan) resultMinutesSpan.textContent = totalMinutes.toLocaleString();
+                if (resultHoursDiv) resultHoursDiv.textContent = '[ ' + totalHours.toFixed(2) + ' HR ]';
+                if (resultSavedCostSpan) resultSavedCostSpan.textContent = Math.round(savedCost).toLocaleString();
+                if (resultNetBenefitSpan) resultNetBenefitSpan.textContent = Math.round(netBenefit).toLocaleString();
+                if (resultFteSpan) resultFteSpan.textContent = fte.toFixed(2);
+            }
+
+            document.querySelectorAll('.calc-input').forEach(input => {
+                input.addEventListener('input', calculateSavings);
+            });
+
+            calculateSavings();
+
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const darkIcon = document.getElementById('theme-toggle-dark-icon');
+            const lightIcon = document.getElementById('theme-toggle-light-icon');
+            const htmlElement = document.documentElement;
+
+            if (themeToggleBtn && darkIcon && lightIcon) {
+                if (htmlElement.classList.contains('dark')) {
+                    lightIcon.classList.remove('hidden');
+                } else {
+                    darkIcon.classList.remove('hidden');
+                }
+
+                themeToggleBtn.addEventListener('click', () => {
+                    htmlElement.classList.toggle('dark');
+                    if (htmlElement.classList.contains('dark')) {
+                        darkIcon.classList.add('hidden');
+                        lightIcon.classList.remove('hidden');
+                    } else {
+                        lightIcon.classList.add('hidden');
+                        darkIcon.classList.remove('hidden');
+                    }
+                });
+            }
+
+            const exportBtn = document.getElementById('export-btn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    const processName = document.getElementById('process-name')?.value || '未命名流程';
+                    const minutes = minutesInput?.value || 0;
+                    const people = peopleInput?.value || 1;
+                    const days = daysInput?.value || 250;
+                    const totalMins = resultMinutesSpan?.textContent || 0;
+                    const totalHrs = resultHoursDiv?.textContent.replace('[', '').replace(']', '').trim() || 0;
+                    const item1 = document.getElementById('improve-item-1')?.value.trim() || '未填寫';
+                    const item2 = document.getElementById('improve-item-2')?.value.trim() || '未填寫';
+                    const item3 = document.getElementById('improve-item-3')?.value.trim() || '未填寫';
+                    const item4 = document.getElementById('improve-item-4')?.value.trim() || '未填寫';
+                    const item5 = document.getElementById('improve-item-5')?.value.trim() || '未填寫';
+                    const hourlyWage = hourlyWageInput?.value || 0;
+                    const rpaCost = rpaCostInput?.value || 0;
+                    const savedCost = resultSavedCostSpan?.textContent || 0;
+                    const netBenefit = resultNetBenefitSpan?.textContent || 0;
+                    const fte = resultFteSpan?.textContent || 0;
+
+                    const reportContent = `=========================================
+          痛點計算機 - 系統分析報告
+=========================================
+[ 第一階段：核心參數與時間估算 ]
+鎖定流程：${processName}
+
+每日耗時：${minutes} 分鐘
+作業人數：${people} 人
+年執行日：${days} 天
+
+>> 預估回收時間總量
+總計分鐘：${totalMins} 分鐘
+總計時數：${totalHrs}
+-----------------------------------------
+
+[ 第二階段：重點改善項目日誌 ]
+01. ${item1}
+02. ${item2}
+03. ${item3}
+04. ${item4}
+05. ${item5}
+-----------------------------------------
+
+[ 第三階段：ROI 投資報酬率量化 ]
+人員單位成本：$${hourlyWage} /小時
+RPA 總擁有成本：$${rpaCost} /年
+
+>> 效益分析結果
+節省人力成本：$${savedCost}
+預估淨效益：$${netBenefit}
+釋放全職人力 (FTE)：${fte} 人
+
+=========================================
+> 系統狀態：百萬美金流程已鎖定
+> 建議行動：立即啟動自動化程序
+=========================================`;
+
+                    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `痛點分析報告_${processName}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
