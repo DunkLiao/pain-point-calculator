@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>痛點計算機</title>
+    <title>RPA(機器人流程自動化)導入規劃試算表</title>
     <style>
         :root {
             color-scheme: light;
@@ -583,7 +583,7 @@
                     <span class="status-dot"></span>
                     SYSTEM STATUS: OFFLINE READY
                 </div>
-                <h1>痛點計算機</h1>
+                <h1>RPA(機器人流程自動化)導入規劃試算表</h1>
             </div>
             <div class="system-id">SYS.01</div>
         </header>
@@ -837,9 +837,9 @@
                     const fte = resultFteSpan?.textContent || 0;
 
                     const reportContent = `=========================================
-          痛點計算機 - 系統分析報告
+ RPA(機器人流程自動化)導入規劃試算表
 =========================================
-[ 第一階段：核心參數與時間估算 ]
+[ 第一階段：流程參數與時間估算 ]
 鎖定流程：${processName}
 
 每日耗時：${minutes} 分鐘
@@ -851,7 +851,7 @@
 總計時數：${totalHrs}
 -----------------------------------------
 
-[ 第二階段：重點改善項目日誌 ]
+[ 第二階段：RPA 導入改善項目 ]
 01. ${item1}
 02. ${item2}
 03. ${item3}
@@ -869,8 +869,8 @@ RPA 總擁有成本：$${rpaCost} /年
 釋放全職人力 (FTE)：${fte} 人
 
 =========================================
-> 系統狀態：百萬美金流程已鎖定
-> 建議行動：立即啟動自動化程序
+> 規劃狀態：RPA 導入候選流程已完成初步量化
+> 建議行動：依效益、穩定度與導入成本評估優先順序
 =========================================`;
 
                     const cp950Content = encodeCp950(reportContent.replace(/\n/g, '\r\n'));
@@ -878,7 +878,7 @@ RPA 總擁有成本：$${rpaCost} /年
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `痛點分析報告_${processName}.txt`;
+                    a.download = `RPA導入規劃試算表_${processName}.txt`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
