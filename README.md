@@ -41,6 +41,9 @@
 
 ```text
 .
+├── .github/
+│   └── workflows/
+│       └── deploy-cloudflare-pages.yml  # GitHub Actions 自動部署到 Cloudflare Pages
 ├── index.html   # 主頁面、樣式與互動邏輯
 └── README.md    # 專案說明文件
 ```
@@ -50,6 +53,24 @@
 - HTML
 - 內嵌 CSS
 - Vanilla JavaScript
+
+## 自動部署到 Cloudflare Pages
+
+此專案透過 GitHub Actions 在 `main` 分支有 push 時，自動將 repo 根目錄部署到 Cloudflare Pages。
+
+部署前請先完成以下設定：
+
+1. 在 Cloudflare Workers & Pages 建立 Pages project，專案名稱使用 `pain-point-calculator`。
+2. 在 Cloudflare 建立 API Token，權限至少需要 `Account > Cloudflare Pages > Edit`。
+3. 在 GitHub repository 的 `Settings > Secrets and variables > Actions` 新增以下 repository secrets：
+   - `CLOUDFLARE_ACCOUNT_ID`：Cloudflare account ID。
+   - `CLOUDFLARE_API_TOKEN`：Cloudflare API token。
+
+完成後，推送到 `main` 分支會觸發 `.github/workflows/deploy-cloudflare-pages.yml`，並執行：
+
+```text
+wrangler pages deploy . --project-name=pain-point-calculator
+```
 
 ## 注意事項
 
