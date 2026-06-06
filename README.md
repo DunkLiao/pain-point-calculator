@@ -41,11 +41,13 @@
 
 ```text
 .
+├── .assetsignore  # Cloudflare Worker 靜態資產上傳排除規則
 ├── .github/
 │   └── workflows/
-│       └── deploy-cloudflare-pages.yml  # GitHub Actions 自動部署到 Cloudflare Pages
+│       └── deploy-cloudflare-worker.yml # GitHub Actions 自動部署到 Cloudflare Worker
 ├── index.html   # 主頁面、樣式與互動邏輯
-└── README.md    # 專案說明文件
+├── README.md    # 專案說明文件
+└── wrangler.toml # Cloudflare Worker 部署設定
 ```
 
 ## 技術
@@ -54,23 +56,25 @@
 - 內嵌 CSS
 - Vanilla JavaScript
 
-## 自動部署到 Cloudflare Pages
+## 自動部署到 Cloudflare Worker
 
-此專案透過 GitHub Actions 在 `main` 分支有 push 時，自動將 repo 根目錄部署到 Cloudflare Pages。
+此專案透過 GitHub Actions 在 `main` 分支有 push 時，自動將 `index.html` 部署到 Cloudflare Worker 靜態資產。
 
 部署前請先完成以下設定：
 
-1. 在 Cloudflare Workers & Pages 建立 Pages project，專案名稱使用 `pain-point-calculator`。
-2. 在 Cloudflare 建立 API Token，權限至少需要 `Account > Cloudflare Pages > Edit`。
+1. 在 Cloudflare Workers & Pages 建立或保留 Worker，名稱使用 `pain-point-calculator`。
+2. 在 Cloudflare 建立 API Token，權限至少需要可編輯 Workers Scripts。
 3. 在 GitHub repository 的 `Settings > Secrets and variables > Actions` 新增以下 repository secrets：
    - `CLOUDFLARE_ACCOUNT_ID`：Cloudflare account ID。
    - `CLOUDFLARE_API_TOKEN`：Cloudflare API token。
 
-完成後，推送到 `main` 分支會觸發 `.github/workflows/deploy-cloudflare-pages.yml`，並執行：
+完成後，推送到 `main` 分支會觸發 `.github/workflows/deploy-cloudflare-worker.yml`，並執行：
 
 ```text
-wrangler pages deploy . --project-name=pain-point-calculator
+wrangler deploy
 ```
+
+`.assetsignore` 會限制 Worker 靜態資產只上傳 `index.html`，避免把 `.git`、GitHub Actions 設定或文件當成公開網站檔案。
 
 ## 注意事項
 
